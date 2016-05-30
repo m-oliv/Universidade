@@ -1,0 +1,281 @@
+2. Tabelas:
+
+animal(nomeA,num_reg,datanasc,sexo)
+classificado(num_reg,especie)
+classificacao(especie,familia,classe,ordem)
+Captura(num_reg,localcaptura,datacaptura)
+Cativeiro(num_reg)
+Habita(num_reg,coord)
+recinto(tipoR,coord,area,meio,temperat,humid)
+funcionario(nome,nif,data_inicio)
+responsavel(nif,nif_resp)
+tratador(nif)
+tratadorAux(nif)
+veterinario(nif)
+administrador(nif)
+consultas(num_reg,nif,data_hora,descricao,tipoC)
+trata(num_reg, nif)
+limpa(nif, coord)
+pai(num_reg_pai, num_reg)
+mae(num_reg_mae, num_reg)
+funcionario_telefones(telefones,nif)
+
+
+
+
+
+3. Dependencias:
+
+PAI
+Num_reg-->num_reg_pai
+
+MAE
+Num_reg-->num_reg_mae
+
+ANIMAL
+num_reg --> nome
+num_reg --> datanasc,sexo
+Nome --> sexo, datanasc
+
+CAPTURA
+num_reg --> datacaptura,localcaptura
+
+RECINTO
+coord --> tipo,meio
+coord --> humid,temperat,area
+ 
+FUNCIONARIO
+nif --> nome,telefones,data_inicio
+
+CONSULTAS
+nif,num_reg,data/hora --> descricao,tipoC
+
+RESPONSAVEL
+nif --> nif_resp
+
+CLASSIFICACAO
+especie --> classe
+especie --> ordem
+especie --> familia
+Familia --> ordem
+Familia --> classe
+Ordem --> classe
+
+CLASSIFICADO
+Num_reg --> especie
+
+HABITA
+Num_reg --> coord
+
+LIMPA
+Coord --> nif
+
+TRATA
+num_reg->nif
+
+
+
+
+
+4. Cobertura canonica
+PAI
+Num_reg-->num_reg_pai
+
+MAE
+Num_reg-->num_reg_mae
+
+TRATA
+num_reg->nif
+
+LIMPA 
+Coord --> nif
+
+HABITA
+Num_reg --> coord
+
+CLASSIFICADO
+Num_reg --> especie
+
+CLASSIFICACAO
+especie --> familia, ordem, classe
+Familia --> ordem, classe
+Ordem --> classe
+
+RESPONSAVEL
+nif --> nif_resp
+
+CONSULTAS
+nif,num_reg,data/hora --> descricao,tipoC
+
+FUNCIONARIO
+nif --> nome,telefones,data_inicio
+
+RECINTO
+coord --> tipo,meio,humid,temperat,area
+
+CAPTURA
+num_reg --> datacaptura,localcaptura
+
+ANIMAL
+num_reg --> nome,datanasc,sexo
+
+
+
+
+5.
+As seguintes relaçoes ja se encontram na forma normal de Boyce-Codd:
+- pai(num_reg,num_reg_pai), pois a chave e {num_reg} (Num_reg-->num_reg_pai) e esta e superchave de pai.
+- mae(num_reg,num_reg_mae), pois a chave e {num_reg} (Num_reg-->num_reg_mae) e esta e superchave de mae.
+- trata(num_reg, nif), pois a chave e {num_reg} (num_reg->nif) e esta e superchave de trata.
+- limpa(nif,coord), pois a chave e {nif} (Coord --> nif) e esta e superchave de limpa.
+- habita(num_reg,coord), pois a chave e {num_reg} (Num_reg --> coord) e esta e superchave de habita.
+- classificado(num_reg,especie), pois a chave e {num_reg} (Num_reg --> especie) e esta e superchave de classificado.
+- responsavel(nif,nif_resp), pois a chave e {nif} (nif --> nif_resp) e esta e superchave de responsavel.
+- cativeiro(num_reg), pois tem uma dependencia funcional trivial.
+- animal(nome, num_reg,datanasc,sexo), pois a chave e {num_reg} (num_reg ---> nome,datanasc,sexo) e esta e a superchave de animal.
+- recinto(tipo,coord,meio,humid,temperat,area) pois a chave e {coord} (coord --> tipo,meio,humid,temperat,area) e esta e a superchave de recinto
+- veterinario(nif)/ administrativo(nif)/tratador(nif)/tratadorAux(nif) pois têm uma dependência funcional trivial.
+- funcionario(nome,nif,telefones,data_inicio) pois a chave e {nif} e esta é superchave de veterinario,administrador,tratador,tratadorAux.
+- consultas(nif,num_reg,data/hora,tipoC,descricao) pois a chave e {nif,num_reg,data/hora} (nif,num_reg,data/hora --> tipoC,descricao) e esta é superchave de consulta.
+- captura(num_reg,datacaptura,localcaptura, pois a chave é {num_reg} (num_reg -->localcaptura,datacaptura) e esta e a superchave de captura.
+
+
+ classificacao(especie,familia,classe,ordem) pois a chave e {especie} (especie -->classe,ordem,familia) e esta e a superchave de classificacao.
+	especie --> familia, ordem, classe //Dependência 1
+	Familia --> ordem, classe  //Dependência 2
+	Ordem --> classe	//Dependência 3
+
+	como as dependências 2 e 3 violam BCNF, decompomos classificacao em:
+ 
+	classNivel1(especie, familia)
+	classNivel2(familia, ordem)
+	classNivel3(ordem, classe)
+
+	As relações C1,C2 e C3 já se encontram na forma normal de boyce-codd.
+
+
+
+
+6.
+Nas dependências indicadas, não há atributos repetidos á esquerda e são todos super chaves das tabelas relevantes. Logo, encontram-se na BCNF.
+
+
+
+
+7. 
+animal(nomeA,num_reg,datanasc,sexo)
+primária: num_reg
+estrangeira: nenhuma
+candidata: num_reg
+
+classificado(num_reg,especie)
+primária: num_reg
+estrangeira: num_reg
+candidata: num_reg
+
+
+ClassNivel1(especie, familia)
+primária: especie
+estrangeira: nenhuma
+candidata: especie
+
+ClassNivel2(familia, ordem)
+primária: familia
+estrangeira: familia
+candidata: familia
+
+ClassNivel3(ordem, classe)
+primária: ordem
+estrangeira: ordem
+candidata: ordem
+
+
+Captura(num_reg,datacaptura,localcaptura)
+primária: num_reg
+estrangeira: num_reg
+candidata: num_reg
+
+
+Cativeiro(num_reg) 
+primária: num_reg
+estrangeira: num_reg
+candidata: num_reg
+
+
+Habita(num_reg,coord) 
+primária: num_reg
+estrangeira: num_reg, coord
+candidata: num_reg
+
+
+recinto(tipoR,coord,meio,humid,temperat,area) 
+primária: coord
+estrangeira: nenhuma
+candidata: coord
+
+
+funcionario(nome,nif,data_inicio) 
+primária: nif
+estrangeira: nenhuma
+candidata: nif
+
+
+responsavel(nif,nif_resp) 
+primária: nif
+estrangeira: nif
+candidata: nif
+
+
+tratador(nif) 
+primária: nif
+estrangeira: nif
+candidata: nif
+
+
+tratadorAux(nif) 
+primária: nif
+estrangeira: nif
+candidata: nif
+
+
+veterinario(nif) 
+primária: nif
+estrangeira: nif
+candidata: nif
+
+
+administrador(nif) 
+primária: nif
+estrangeira: nif
+candidata: nif
+
+
+consultas(nif,num_reg,data_hora,tipoC,descricao) 
+primária: nif, num_reg,data/hora
+estrangeira: nif, num_reg
+candidata: nif, num_reg,data/hora
+
+trata(num_reg, nif)
+primária: num_reg
+estrangeira: nif, num_reg
+candidata: num_reg
+
+limpa(nif, coord) 
+primária: coord
+estrangeira: nif, coord
+candidata: coord
+
+pai(num_reg_pai, num_reg) 
+primária: num_reg
+estrangeira: num_reg
+candidata: num_reg
+
+mae(num_reg_mae, num_reg) 
+primária: num_reg
+estrangeira: num_reg
+candidata: num_reg
+
+funcionario_telefones(telefones, nif)
+primária: telefones,nif
+estrangeira: nif
+candidata: telefones,nif

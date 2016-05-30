@@ -1,0 +1,31 @@
+select distinct coord from habita natural inner join classificado natural inner join classnivel1 natural inner join classnivel2 natural inner join classnivel3 where classe = 'aves';
+
+(select distinct coord from habita natural inner join classnivel1 natural inner join classnivel2 natural inner join classnivel3 natural inner join classificado) except (select distinct coord from habita natural inner join classnivel1 natural inner join classnivel2 natural inner join classnivel3 natural inner join classificado where ordem='carnivoros');
+
+with pais as (select num_reg_pai as pai, num_reg_mae as mae from animal natural inner join cativeiro natural inner join pai natural inner join mae where num_reg=323666) select nomeA from animal natural inner join cativeiro natural inner join pai natural inner join mae natural inner join pais where num_reg_mae=mae and num_reg_pai=pai except SELECT nomea from animal where nomea=’Kilu’;
+
+select telefones from funcionario_telefones natural inner join funcionario natural inner join tratador natural inner join trata natural inner join animal where nomeA = 'Kata';
+
+WITH auxiliar_kata as(With localKata as (SELECT coord FROM animal natural inner join recinto natural inner join trata natural inner join habita WHERE nomea=’Kata’) SELECT nif as aux FROM limpa, localKata WHERE limpa.coord=localKata.coord) SELECT telefones FROM auxiliar_kata, funcionario_telefones WHERE nif=aux;
+
+select data_hora,descricao from consulta natural inner join animal where tipoC='tratamento' and nomeA='Malii';
+
+select distinct nome from funcionario natural inner join veterinario natural inner join consulta natural inner join classificado natural inner join classnivel1 natural inner join classnivel2 natural inner join classnivel3 where ordem='carnivoros' and tipoC='diagnostico' and descricao='gravida';
+
+select count(distinct num_reg) as num,familia from classnivel1 natural inner join classnivel2 natural inner join classnivel3 natural inner join classificado where ordem = 'artiodactilos' group by familia;
+
+WITH paresPossiveis as(with femea as (SELECT nomea as femea, num_reg as num_regF, especie FROM animal natural inner join classificado WHERE sexo=’F’) SELECT DISTINCT macho, femea, macho.especie, num_regF, num_regM FROM (SELECT nomea as macho, num_reg as num_regM, especie FROM animal natural inner join classificado WHERE sexo=’M’) as macho, femea Where macho.especie=femea.especie) SELECT macho, femea FROM paresPossiveis EXCEPT SELECT macho, femea FROM paresPossiveis, pai natural inner join mae natural inner join animal, (SELECT num_reg_mae as m1, nomeA as filho1, num_reg_pai as p1 FROM mae natural inner join pai natural inner join animal, paresPossiveis WHERE num_reg=num_regM) as paisMacho, (SELECT num_reg_mae as m2, nomeA as filho2, num_reg_pai as p2 FROM mae natural inner join pai natural inner join animal, paresPossiveis WHERE num_reg=num_regF) as paisFemea WHERE (nomeA=macho and num_regF=num_reg_mae) or (nomea=femea and num_regM=num_reg_pai) or (macho=filho1 and femea=filho2 and m2=m1 and p2=p1);
+
+select max,ordem from (select count(num_reg) as max, ordem from classnivel1 natural inner join classnivel2 natural inner join classnivel3 natural inner join classificado group by ordem)as J  where J. max = (select max(m)from (select count(num_reg)as m,ordem from classnivel1 natural inner join classnivel2 natural inner join classnivel3  natural inner join classificado group by ordem)as K);
+
+select ordem from (select count(num_reg)as num_c,ordem from classnivel1 natural inner join classnivel2 natural inner join classnivel3 natural inner join classificado natural inner join consulta  group by ordem) as K where num_c>5;
+
+select count(num_reg) as cativeiro_zoo from cativeiro;
+
+select nomea,especie from classnivel1 natural inner join classnivel2 natural inner join classnivel3 natural inner join classificado natural inner join animal where datanasc = (select min(datanasc) from animal);
+
+select coord from (select count(num_reg) as num, coord from recinto natural inner join habita natural inner join classificado natural inner join classnivel1 natural inner join classnivel2 natural inner join classnivel3 where humid = 'humida' and classe ='mamiferos' group by coord)as K where num=(select max(num_m) from (select count(num_reg)as num_m,coord from recinto natural inner join habita natural inner join classificado natural inner join classnivel1 natural inner join classnivel2 natural inner join classnivel3 where humid='humida' and classe= 'mamiferos' group by coord)as L);
+
+select count(num_reg) as num_m,nome from funcionario natural inner join tratador natural inner join trata natural inner join classificado natural inner join classnivel1 natural inner join classnivel2 natural inner join classnivel3 where classe='mamiferos' group by nome;
+
+With totalVets as(select count(nif) from veterinario natural inner join funcionario) SELECT nomea FROM (SELECT COUNT(nif), num_reg FROM(SELECT DISTINCT nif, num_reg FROM consulta) as vetsPerAnimal GROUP BY num_reg) as vetsPerAnimalCount, totalVets, animal WHERE animal.num_reg=vetsPerAnimalCount.num_reg and totalVets.count=vetsPerAnimalCount.count;

@@ -1,0 +1,28 @@
+<html>
+<head>
+<title>Viagens Aereas do Alentejo - Home</title>
+</head>
+
+
+<body bgcolor="#85C2FF">
+
+<b>
+<font face="Arial, Helvetica, sans-serif"><font size=+20>
+<center>Viagens Aereas do Alentejo</center>
+</font></font>
+</b>
+
+<p align="center"><img src="http://www.passenlaw.com/uploads/aviation%20accident%20lawyers.jpg" alt="Airplane" height="408" width="700"/> 
+</p>
+<center>Bem-vindo ao Sistema de Venda de Viagens Aereas!</center>
+
+<center>
+<form>
+<input type=button value="Entrar no Sistema" ONCLICK="window.location.href='teste/loja'">
+
+</form>
+</center>
+</p>
+
+</body>
+</html>

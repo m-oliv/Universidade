@@ -1,0 +1,427 @@
+.data
+File: .asciiz ""
+.text
+
+##########################################################################
+#main: esta função controla todos os métodos e preserva variáveis que sejam necessárias.
+#Argumentos:
+#Não possui argumentos.
+#
+#Retorna:
+#Não é retornado qualquer valor.
+##########################################################################
+main:						   
+	addi $s0, $s0, 0x10010000  
+	add $s1, $zero, $sp
+	jal Name 			
+	jal newline				
+	jal OpenFile			
+	add $s5, $zero, $sp        
+	addi $sp, $sp, -1000      
+	jal Read				
+	jal Verify				
+	jal ToString               
+	add $s2, $zero, $v0        
+
+	jal ToString               
+	add $s3, $zero, $v0        
+	addi $t7, $t7, 1           
+	addi $a1, $zero, 0		   
+	move $a2, $s2			   
+	add $s6, $zero, $t7        
+	jal reorder                
+	add $t7, $zero, $s6        
+	addi $a0, $zero, 0x3C      
+	jal MIDIstack
+	move $sp, $s1
+	j end
+
+##########################################################################
+#Name: Input do utilizador para o caminho do ficheiro
+#Argumentos:
+#a0 - Endereço do buffer de input - a stack
+#a1 - nº de caractéres a ler, no máximo, 128.
+#v0 - Syscall 8.
+#
+#Retorna:
+#No endereço 0x10010000 (.data), coloca o caminho 
+#do ficheiro que o utilizador indicou, com um newline no final.
+##########################################################################
+
+Name:
+    addi $sp, $sp, -4
+	sw $ra, 0($sp)
+						    
+	la $a0, ($s0)
+							
+	li $a1, 128
+							
+	li $v0, 8
+							
+	syscall
+							
+
+	jr $ra
+
+##########################################################################
+#OpenFile: Abre o ficheiro de texto indicado por Name.
+#Argumentos:
+#a0 - Endereço onde se encontra o caminho do ficheiro (ex. C:/Nemo.txt)
+#a1 - Flags (0)
+#a2 - Mode (0)
+#v0 - Syscall 13
+#
+#Retorna:
+#v0 - Descritor do ficheiro.
+##########################################################################
+
+OpenFile:
+    addi $sp, $sp, -4
+	sw $ra, 0($sp)
+				
+	la $a0, File
+								
+	li $a1, 0
+							
+	li $a2, 0
+
+	li $v0, 13
+							
+	syscall
+							
+	jr $ra
+
+##########################################################################
+#Read: Lê o ficheiro de texto aberto por OpenFile.
+#Argumentos:
+#a0 - Descritor do ficheiro
+#a1 - Buffer de 51200 B (50KB)
+#a2 - Número máximo de caractéres a ler, de 51200
+#v0 - Syscall 14
+#
+#Retorna:
+#v0 - Número de caracteres lidos.
+##########################################################################
+
+Read:
+    addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	
+	move $a0, $v0
+							
+	move $a1, $sp
+							
+	li $a2, 51200
+							
+	li $v0, 14
+							
+	syscall
+							
+	add $t7, $zero, $sp
+							
+	add $sp, $zero, $s5
+							
+	jr $ra
+
+##########################################################################
+#Verify - Verifica se o ficheiro aberto é, de facto, um ficheiro válido.
+#Argumentos:
+#a0 - Primeiro caractér lido do ficheiro
+#a1 - 0x30, 0 pela tabela ASCII
+#a2 - 0x39, 9 pela tabela ASCII
+#
+#Retorna:
+#Não retorna nenhum valor.
+##########################################################################
+
+Verify:
+    addi $sp, $sp, -4
+	sw $ra, 0($sp)
+							
+	lb $a0, 0($t7)
+							
+	beq $a0, $zero, ErrorMessage
+							
+	addi $a1, $zero, 0x30
+	addi $a2, $zero, 0x39
+							
+	slt $t2, $a0, $a1
+							
+	bne $t2, $zero, ErrorMessage
+							
+	sle $t2, $a0, $a2
+							
+	beq $t2, $zero, ErrorMessage
+
+	jr $ra
+
+##########################################################################
+#newline - Elimina o New Line (0xd) que foi carregado pelo read. 
+#Argumentos:
+#a0 - 0xa (New Line segundo a tabela ASCII)
+#a1 - Byte carregado da memória
+#
+#
+#Retorna:
+#Não retorna nenhum valor.
+##########################################################################
+
+newline:
+
+	move $t7, $a0
+    addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	
+newlineexec:
+							
+	addi $a0, $zero, 0xa
+							
+	lb $a1, 0($s0)
+							
+	addi $s0, $s0, 1
+							
+	bne $a0, $a1, newlineexec
+							
+	sb $zero, -1($s0)
+							
+	move $s0, $t7
+
+	jr $ra
+
+
+##########################################################################
+#ToString - Lê os números no ficheiro de música, e passa-os de string de
+#caractéres para o seu valor equivalente em inteiro.
+#Argumentos:
+#a0 - 0x30, 0 em ASCII
+#a1 - Valor de cada algarismo passado para inteiro
+#a2 - Multiplicador da casa decimal
+#
+#Retorna:
+#v0 - O número passado de string para inteiro.
+##########################################################################
+
+ToString:	
+    addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	
+	addi $v0, $zero, 0 					
+	
+run:
+	addi $a0, $zero, 0x30 				
+	addi $a1, $zero, 0  			    
+	addi $a2, $zero, 10  		 	   
+	lb $t0, 0($t7)						
+	addi $t7, $t7, 1					
+									
+	blt $t0, $a0, ToStringFinish       
+numcicle:								
+	beq $t0, $a0, cal
+	addi $a0, $a0, 1
+	addi $a1, $a1, 1
+	j numcicle
+
+cal:									
+	
+	mul $v0, $v0, $a2					
+	add $v0, $v0, $a1			       
+	j run
+
+ToStringFinish:						 	
+
+	jr $ra
+
+
+#######################################################################
+#MIDI: Este ciclo reproduz a música.
+#Argumentos:
+#(Como 4 argumentos eram insuficientes, foi necessário usar temporários)
+#a0:Nota a tocar (varia consoante o que está no ficheiro lido)
+#a1:Duração da nota (em milissegundos)(varia com a nota lida)
+#a2:Instrumento (dependente do ficheiro lido)
+#a3:Volume(100)
+#t1:- em hexadecimal (0x2d)
+#t2:b em hexadecimal (0x62)
+#t3:# em hexadecimal (0x23)
+#t4:0x3a (Valor na tabela ascii acima de 9)
+#
+#
+#retorna:
+#Este método não retorna nenhum valor.
+######################################################################
+
+MIDIstack:
+    addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	
+
+MIDI:
+	addi $t1, $zero, 0x2d   
+	addi $t2, $zero, 0x62   
+	addi $t3, $zero, 0x23   
+	addi $t4, $zero, 0x3a   
+	addi $a3, $zero, 100    
+	addi $v0, $zero, 33     
+	lb $t0, 0($t7)          
+	addi $t7, $t7, 1
+	beq $t0, $t1, duração
+	beq $t0, $t2, bemol
+	beq $t0, $t3, sustenido
+	beq $t0, $zero, tocar
+							
+	blt $t0, $t4, Numcase
+							
+	addi $t5, $zero, 0x43 	
+	beq $t5, $t0, MIDI
+	addi $t5, $zero, 0x44 	
+	beq $t5, $t0, sumré
+	addi $t5, $zero, 0x45 	
+	beq $t5, $t0, summi
+	addi $t5, $zero, 0x46	 
+	beq $t5, $t0, sumfá
+	addi $t5, $zero, 0x47 	
+	beq $t5, $t0, sumsol
+	addi $t5, $zero, 0x41	 
+	beq $t5, $t0, sumlá
+	addi $t5, $zero, 0x42   
+	beq $t5, $t0, sumsi
+							
+sumré:
+	addi $a0, $a0, 2
+	j MIDI
+summi:
+	addi $a0, $a0, 4
+	j MIDI
+sumfá:
+	addi $a0, $a0, 5
+	j MIDI
+sumsol:
+	addi $a0, $a0, 7
+	j MIDI
+sumlá:
+	addi $a0, $a0, 9
+	j MIDI
+sumsi:
+	addi $a0, $a0, 11
+	j MIDI
+tocar:
+	syscall
+	addi $a0, $zero, 0x3C   
+	addi $a1, $zero, 0
+	beq $t0, $zero, MIDIend
+	j MIDI
+duração:
+	lb $t5, 0($t7)  		
+	addi $t6, $zero, 0x30 	
+							
+	slt $t8, $t5, $t4   	
+	sgt $t9, $t5, $t6   	
+	beq $t8, $t9, Numcasenegative
+	add $a1, $a1, $s3
+	beq $t5, $t1, duraçãoreturn
+	j tocar
+duraçãoreturn:
+	j MIDI
+bemol:
+	addi $a0, $a0, -1
+	j MIDI
+sustenido:
+	addi $a0, $a0, 1
+	j MIDI
+Numcase:
+						
+	addi $t0, $t0, -0x30
+	addi $t5, $zero, 12
+	mul $t0, $t0, $t5
+	add $a0, $a0, $t0
+	j MIDI
+Numcasenegative:
+							
+	addi $t5, $t5, -0x30
+	addi $t0, $zero, 12
+	mul $t5, $t5, $t0
+	sub $a0, $a0, $t5
+	addi $t7, $t7, 1
+	j MIDI
+MIDIend:
+	jr $ra
+
+####################################################################################
+#reorder: Retira New Lines e Carriage Returns do ficheiro
+#argumentos:
+#t0:Valor carregado do ficheiro
+#t1:0xa (new line pela tabela ASCII)
+#t2:0xd (Carriage Return pela tabela ASCII)
+#t3:0
+#t4:Stack para preservar
+#
+#Retorna:
+#Não retorna nenhum valor.
+####################################################################################
+reorder:
+    addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	
+runreorder:
+
+
+	lb $t0, 0($t7)
+	addi $t1, $zero, 0xa
+	addi $t2, $zero, 0xd
+	addi $t3, $zero, 0
+	add $t4, $zero, $t7      
+	beq $t0, $t1, movement
+	beq $t0, $t2, movement
+	beq $t0, $t3, orderfinish
+	addi $t7, $t7, 1
+	j reorder
+movement:
+	lb $t0, 1($t7)
+	sb $t0, 0($t7)
+	beq $t0, $t3, movementfinish
+	addi $t7, $t7, 1
+	j movement
+movementfinish:
+	add $t7, $zero, $t4      
+	j runreorder
+orderfinish:
+	jr $ra
+
+####################################################################################
+#ErrorMessage: Em caso de ficheiro inválido, apresenta mensagem de erro. (Syscall 4)
+#argumentos:
+#v0: 4 (Syscall 4)
+#String Erro (em memória): "The File name is invalid, or not a valid song."
+#Retorna:
+#Não retorna nenhum valor.
+####################################################################################
+
+ErrorMessage:
+    addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	
+	.data
+	.space 100000
+	Erro: .asciiz "The file name is invalid, or not a valid song."
+	.text
+	li $v0, 4
+	la $a0, Erro
+	syscall
+	j end
+
+####################################################################################
+#End: Fecha o ficheiro e encerra o programa.
+#argumentos:
+#v0: 16 (Syscall 16)
+#a0: File Descriptor (.data)
+#Retorna:
+#Não retorna nenhum valor.
+####################################################################################
+
+end:
+	addi $v0, $zero, 16
+	add $a0, $zero, $s0
+	syscall
+
+
+

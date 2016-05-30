@@ -1,0 +1,29 @@
+gram: 
+	bison -d vspl.y
+	flex vspl.lex
+	gplc --min-size -o parser apt.pl
+	gcc -c vspl.tab.c
+	gcc -c lex.yy.c
+	gcc -o vspl vspl.tab.o lex.yy.o -lm 
+
+erroslex:
+	yacc -v vspl.y
+
+parse:	
+	./vspl exemplos/vars.vspl | ./parser
+
+parsedebug:	
+	./vspl exemplos/vars.vspl
+
+sim:
+	sim2c < vspl.sim > vspl.c
+	gcc -o vsplrun vspl.c
+
+clean:
+	rm *~ *# *.c *.o *.h *.output vspl.sim vsplrun parser vspl -f
+
+run:
+	./vsplrun
+
+all: vspl parse sim run 
+

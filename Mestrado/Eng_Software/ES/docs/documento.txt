@@ -1,0 +1,10 @@
+title:
+Lorem ipsum
+
+body:
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris lobortis
+eleifend justo vitae pulvinar. Morbi sagittis nisl sodales, egestas enim eu,
+lobortis enim. Nunc adipiscing lacinia orci, vel semper ipsum bibendum vitae.
+Nunc ac massa ornare, laoreet ipsum nec, bibendum erat. Ut ornare velit non
+arcu pellentesque aliquet. Sed libero lorem, facilisis in tellus quis,
+vestibulum venenatis tortor. Nulla consequat venenatis ultrices.
